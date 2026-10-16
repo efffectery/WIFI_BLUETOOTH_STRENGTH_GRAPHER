@@ -1,0 +1,50 @@
+# Build output
+build/
+dist/
+
+# ESP-IDF configuration
+sdkconfig
+sdkconfig.old
+sdkconfig.defaults.old
+*.config
+
+# Compilation database and generated files
+compile_commands.json
+dependencies.lock
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+.ninja_deps
+.ninja_log
+.ninja*
+
+# ESP-IDF generated files
+managed_components/
+components/managed_components/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak

@@ -3,9 +3,15 @@
 
 void gather_signals(void)
 {
-    const wifi_init_config_t = {
+    wifi_mode_t mode = WIFI_MODE_STA;
+    wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
 
-    };
+    ESP_ERROR_CHECK(esp_wifi_init(&config));
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(mode));
+    ESP_ERROR_CHECK(esp_wifi_get_mode(&mode));
+
+}
     /*
      * esp_err_t esp_wifi_set_band(wifi_band_t band)
      *
@@ -31,11 +37,9 @@ void gather_signals(void)
      * enumerator WIFI_BAND_MODE_AUTO
      *
      */
-    ESP_ERR_CHECK(esp_wifi_init());
-
-}
 
 void app_main(void)
 {
+    gather_signals();
 
 }
