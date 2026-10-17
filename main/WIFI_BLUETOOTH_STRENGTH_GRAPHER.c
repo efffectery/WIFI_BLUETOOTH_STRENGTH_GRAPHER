@@ -5,20 +5,18 @@
 #include "esp_netif.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "esp_event.h"
+#include "freertos/task.h"
+
+#define INCLUDE_vTaskDelay 1
+
 
 static const char *TAG = "wifi scanner";
 
-
-void gather_signals(void)
+void init_wifi(void)
 {
     // Configs for WiFi behavior.
-    bool block = true;
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
-    wifi_scan_config_t scan_config = {
-        .show_hidden = true,
-        .scan_type = WIFI_SCAN_TYPE_ACTIVE
-    };
-
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_netif_create_default_wifi_sta();
@@ -34,7 +32,17 @@ void gather_signals(void)
 
 
     // Log information that the initulization finished
-    ESP_LOGI(TAG, "wifi init finished");
+    ESP_LOGI(TAG, "init finished");
+}
+
+void gather_signals(void)
+{
+    // Configs for Scan behavior
+    bool block = true;
+    wifi_scan_config_t scan_config = {
+        .scan_type = WIFI_SCAN_TYPE_ACTIVE
+    };
+
 
     // Start Scan, block program until scan is finished.
     ESP_ERROR_CHECK(esp_wifi_scan_start(&scan_config, block));
@@ -52,19 +60,24 @@ void gather_signals(void)
 
         ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&max_num_APs, ap_infos));
 
+        printf("\n\n\n\nNEW SCAN!!!!!");
         for (int i = 0; i < max_num_APs; i++)
         {
-            printf("SSID = %s\nRSSI = %d\n", (char *)ap_infos[i].ssid, (int)ap_infos[i].rssi);
+            // prints the SSID, MAC ADDRESS, AND STRENGTH OF WIFI AP, HIGHER RSSI VALUES == STRONGER SIGNAL
+            printf("SSID: %s BSSID: %02X:%02X:%02X:%02X:%02X:%02X: RSSI: %d\n", 
+                    (char *)ap_infos[i].ssid, 
+                    ap_infos[i].bssid[0], 
+                    ap_infos[i].bssid[1], 
+                    ap_infos[i].bssid[2], 
+                    ap_infos[i].bssid[3], 
+                    ap_infos[i].bssid[4], 
+                    ap_infos[i].bssid[5], 
+                    (int)ap_infos[i].rssi);
         }
 
         ESP_ERROR_CHECK(esp_wifi_clear_ap_list());
         free(ap_infos);
     }
-
-
-
-    ESP_ERROR_CHECK(esp_wifi_stop());
-    ESP_ERROR_CHECK(esp_wifi_deinit());
 }
 
 
@@ -72,6 +85,7 @@ void gather_signals(void)
 // Entry point of code a ESP-IDF program -->
 void app_main(void)
 {
+
     //Initialize NVS straight from https://github.com/espressif/esp-idf/blob/v6.1/examples/wifi/getting_started/station/main/station_example_main.c
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) 
@@ -79,9 +93,19 @@ void app_main(void)
       ESP_ERROR_CHECK(nvs_flash_erase());
       ret = nvs_flash_init();
     }
-
     ESP_ERROR_CHECK(ret);
+    
+    // start wifi 
+    init_wifi();
 
-    gather_signals();
+    // gather signals every x seconds
+    while (true)
+    {
+        gather_signals();
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
 
+
+    ESP_ERROR_CHECK(esp_wifi_stop());
+    ESP_ERROR_CHECK(esp_wifi_deinit());
 }
