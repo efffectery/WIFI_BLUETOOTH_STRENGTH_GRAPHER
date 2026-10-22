@@ -4,4 +4,6 @@ idf_component_register(
     REQUIRES esp_wifi
     REQUIRES nvs_flash
     REQUIRES esp_netif
+    REQUIRES esp_lcd
+    REQUIRES bt
 )
